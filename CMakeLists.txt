@@ -15,7 +15,6 @@ add_subdirectory( ${Catch2__DIR}/Catch2 )
 #*      )
 #*************************************************************************#
 function( catch2__add_test )
-    # Uncomment the block below to inspect passed parameters
 
     set( option_args )
     set( one_value_args NAME )
@@ -63,7 +62,14 @@ endfunction( catch2__add_test )
 #*  Usage:  
 #*      catch2__build_test_executable()
 #*************************************************************************#
+
 function( catch2__build_test_executable )
+
+    set( option_args GENERATE_COVERAGE_REPORT )
+    set( one_value_args COVERAGE_OUTPUT_DIR )
+    set( multi_value_args )
+
+    cmake_parse_arguments( catch2__build_test_executable "${option_args}" "${one_value_args}" "${multi_value_args}" ${ARGN} )
 
     if( _catch2__TESTS )
     
@@ -79,10 +85,23 @@ function( catch2__build_test_executable )
             "${_catch2__TESTS}"
         )
 
-        find_program( LCOV_EXECUTABLE lcov )
-        find_program( GENHTML_EXECUTABLE genhtml )
 
-        if( LCOV_EXECUTABLE AND GENHTML_EXECUTABLE )
+        add_custom_command(
+            TARGET test__all
+            POST_BUILD
+            COMMAND test__all
+        )
+
+        if( catch2__build_test_executable_GENERATE_COVERAGE_REPORT )
+
+            find_program( LCOV_EXECUTABLE lcov REQUIRED )
+            find_program( GENHTML_EXECUTABLE genhtml REQUIRED )
+
+            if( NOT catch2__build_test_executable_COVERAGE_OUTPUT_DIR )
+                set( catch2__build_test_executable_COVERAGE_OUTPUT_DIR ${CMAKE_BINARY_DIR}/coverage )
+            endif( NOT catch2__build_test_executable_COVERAGE_OUTPUT_DIR )
+
+            file( MAKE_DIRECTORY ${catch2__build_test_executable_COVERAGE_OUTPUT_DIR} )
 
             set_target_properties(
                 test__all
@@ -94,15 +113,15 @@ function( catch2__build_test_executable )
             add_custom_command(
                 TARGET test__all
                 POST_BUILD
-                COMMAND test__all
-                COMMAND lcov  --quiet --directory ${CMAKE_BINARY_DIR} --capture --output-file ${CMAKE_BINARY_DIR}/coverage.info
+                COMMAND lcov  --quiet --directory ${CMAKE_BINARY_DIR} --capture --output-file ${catch2__build_test_executable_COVERAGE_OUTPUT_DIR}/coverage.info
                 # Workaround - explicitly remove files from coverage report that commonly show up, but are not part of the project being built.
-                COMMAND lcov --quiet --remove ${CMAKE_BINARY_DIR}/coverage.info -o ${CMAKE_BINARY_DIR}/coverage.info '*9.2.0*' '*Catch2*'
-                COMMAND genhtml --quiet ${CMAKE_BINARY_DIR}/coverage.info -o ${CMAKE_SOURCE_DIR}/../docs/coverage
+                COMMAND lcov --quiet --remove ${catch2__build_test_executable_COVERAGE_OUTPUT_DIR}/coverage.info -o ${catch2__build_test_executable_COVERAGE_OUTPUT_DIR}/coverage.info '*9*' '*Catch2*'
+                COMMAND genhtml --quiet ${catch2__build_test_executable_COVERAGE_OUTPUT_DIR}/coverage.info -o ${catch2__build_test_executable_COVERAGE_OUTPUT_DIR}
             )
+        
+        endif( catch2__build_test_executable_GENERATE_COVERAGE_REPORT )
 
-        endif( LCOV_EXECUTABLE AND GENHTML_EXECUTABLE )
-    
-        endif( _catch2__TESTS )
+
+    endif( _catch2__TESTS )
 
 endfunction( catch2__build_test_executable )
