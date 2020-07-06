@@ -7,18 +7,24 @@ add_subdirectory( ${Catch2__DIR}/Catch2 )
 #*      catch2__add_test
 #*  Description:
 #*      Adds a test group to be built according to the supplied parameters
+#*  Parameters:
+#*      NAME - the name of the test target
+#*      SOURCES - The sources used to build the test target
+#*      LINK_LIBRARIES - Optional list of library targets to be linked with the test target
+#*      DEPENDENCIES - Optional list of dependencies to be built before the test target
 #*  Usage:  
 #*      catch2__add_test(
 #*          NAME <name>
 #*          SOURCES <source_1 source_2 ...>
-#*          DEPENDENCIES <dependency_1 dependency_2 ...>
+#*          LINK_LIBRARIES <library_1 library_2 ...>
+#*          DEPENDENCIES <dependency_1 dependency_2  ...>
 #*      )
 #*************************************************************************#
 function( catch2__add_test )
 
     set( option_args )
     set( one_value_args NAME )
-    set( multi_value_args SOURCES DEPENDENCIES )
+    set( multi_value_args SOURCES LINK_LIBRARIES DEPENDENCIES )
 
     cmake_parse_arguments( catch2__add_test "${option_args}" "${one_value_args}" "${multi_value_args}" ${ARGN} )
 
@@ -27,9 +33,10 @@ function( catch2__add_test )
     message( "Parameters passed to function catch2__add_test:")
     message( "NAME:\t${catch2__add_test_NAME}" )
     message( "SOURCES:\t${catch2__add_test_SOURCES}")
+    message( "LINK_LIBRARIES:\t${catch2__add_test_LINK_LIBRARIES}")
     message( "DEPENDENCIES:\t${catch2__add_test_DEPENDENCIES}")
     ]]
-    
+
     #   Don't build the executable yet - we'll just build an object library that
     #   can be linked by the test runner executable later in the build process
     add_library(
@@ -41,8 +48,15 @@ function( catch2__add_test )
     target_link_libraries(
         ${catch2__add_test_NAME}
         Catch2
-        "${catch2__add_test_DEPENDENCIES}"
+        "${catch2__add_test_LINK_LIBRARIES}"
     )
+    
+    if( NOT ${catch2__add_test_DEPENDENCIES} STREQUAL "" )
+        add_dependencies(
+            ${catch2__add_test_NAME}
+            ${catch2__add_test_DEPENDENCIES}
+        )
+    endif( NOT ${catch2__add_test_DEPENDENCIES} STREQUAL "" )
 
     #   Keep a gobal list of added tests which will be linked to the test
     #   runner executable later in the build process
@@ -85,13 +99,6 @@ function( catch2__build_test_executable )
             "${_catch2__TESTS}"
         )
 
-
-        add_custom_command(
-            TARGET test__all
-            POST_BUILD
-            COMMAND test__all
-        )
-
         if( catch2__build_test_executable_GENERATE_COVERAGE_REPORT )
 
             find_program( LCOV_EXECUTABLE lcov REQUIRED )
@@ -113,6 +120,7 @@ function( catch2__build_test_executable )
             add_custom_command(
                 TARGET test__all
                 POST_BUILD
+                COMMAND test__all WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
                 COMMAND lcov  --quiet --directory ${CMAKE_BINARY_DIR} --capture --output-file ${catch2__build_test_executable_COVERAGE_OUTPUT_DIR}/coverage.info
                 # Workaround - explicitly remove files from coverage report that commonly show up, but are not part of the project being built.
                 COMMAND lcov --quiet --remove ${catch2__build_test_executable_COVERAGE_OUTPUT_DIR}/coverage.info -o ${catch2__build_test_executable_COVERAGE_OUTPUT_DIR}/coverage.info '*9*' '*Catch2*'
@@ -120,7 +128,6 @@ function( catch2__build_test_executable )
             )
         
         endif( catch2__build_test_executable_GENERATE_COVERAGE_REPORT )
-
 
     endif( _catch2__TESTS )
 
