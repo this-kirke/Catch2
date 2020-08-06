@@ -1,6 +1,8 @@
 set( Catch2__DIR "${CMAKE_CURRENT_LIST_DIR}" CACHE STRING "The root directory for the Catch2 module." )
 
-add_subdirectory( ${Catch2__DIR}/Catch2 )
+if( NOT TARGET Catch2 )
+    add_subdirectory( ${Catch2__DIR}/Catch2 )
+endif( NOT TARGET Catch2 )
 
 #*************************************************************************#
 #*  Public Function:
