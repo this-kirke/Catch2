@@ -154,10 +154,10 @@ function( catch2__generate_coverage_report )
         TARGET test__all
         POST_BUILD
         COMMAND test__all WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMAND lcov --directory ${CMAKE_BINARY_DIR} --capture --output-file ${catch2__generate_coverage_report_OUTPUT_DIR}/coverage.info
+        COMMAND lcov --quiet --directory ${CMAKE_BINARY_DIR} --capture --output-file ${catch2__generate_coverage_report_OUTPUT_DIR}/coverage.info
         
         # Workaround - explicitly remove files from coverage report that commonly show up, but are not part of the project being built.
-        COMMAND lcov --remove ${catch2__generate_coverage_report_OUTPUT_DIR}/coverage.info -o ${catch2__generate_coverage_report_OUTPUT_DIR}/coverage.info */catch.hpp *${CMAKE_C_COMPILER_VERSION}* *${CMAKE_CXX_COMPILER_VERSION}
+        COMMAND lcov --quiet --remove ${catch2__generate_coverage_report_OUTPUT_DIR}/coverage.info -o ${catch2__generate_coverage_report_OUTPUT_DIR}/coverage.info */catch.hpp *${CMAKE_C_COMPILER_VERSION}* *${CMAKE_CXX_COMPILER_VERSION}
         
         COMMAND genhtml --quiet ${catch2__generate_coverage_report_OUTPUT_DIR}/coverage.info -o ${catch2__generate_coverage_report_OUTPUT_DIR}
     )
