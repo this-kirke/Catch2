@@ -1,4 +1,12 @@
+project( Catch2 )
+
+cmake_minimum_required( VERSION 3.12 )
+
+set( CMAKE_VERBOSE_MAKEFILE off )
+
 set( Catch2__DIR "${CMAKE_CURRENT_LIST_DIR}" CACHE STRING "The root directory for the Catch2 module." )
+
+option( CATCH2__TEST "Test Catch2 functionality." OFF )
 
 if( NOT TARGET Catch2 )
     add_subdirectory( ${Catch2__DIR}/Catch2 )
@@ -127,6 +135,12 @@ function( catch2__generate_coverage_report )
         set( catch2__generate_coverage_report_OUTPUT_DIR ${CMAKE_BINARY_DIR}/coverage )
     endif( NOT catch2__generate_coverage_report_OUTPUT_DIR )
 
+    #   Uncomment below to inspect parameters passed to function
+    #[[
+    message( "Parameters passed to function catch2__generate_coverage_report:")
+    message( "OUTPUT_DIR:\t${catch2__generate_coverage_report_OUTPUT_DIR}" )
+    ]]
+
     file( MAKE_DIRECTORY ${catch2__generate_coverage_report_OUTPUT_DIR} )
 
     set_target_properties(
@@ -140,10 +154,16 @@ function( catch2__generate_coverage_report )
         TARGET test__all
         POST_BUILD
         COMMAND test__all WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMAND lcov  --quiet --directory ${CMAKE_BINARY_DIR} --capture --output-file ${catch2__generate_coverage_report_OUTPUT_DIR}/coverage.info
+        COMMAND lcov --directory ${CMAKE_BINARY_DIR} --capture --output-file ${catch2__generate_coverage_report_OUTPUT_DIR}/coverage.info
+        
         # Workaround - explicitly remove files from coverage report that commonly show up, but are not part of the project being built.
-        COMMAND lcov --quiet --remove ${catch2__generate_coverage_report_OUTPUT_DIR}/coverage.info -o ${catch2__generate_coverage_report_OUTPUT_DIR}/coverage.info '*9*' '*Catch2*'
+        COMMAND lcov --remove ${catch2__generate_coverage_report_OUTPUT_DIR}/coverage.info -o ${catch2__generate_coverage_report_OUTPUT_DIR}/coverage.info */catch.hpp *${CMAKE_C_COMPILER_VERSION}* *${CMAKE_CXX_COMPILER_VERSION}
+        
         COMMAND genhtml --quiet ${catch2__generate_coverage_report_OUTPUT_DIR}/coverage.info -o ${catch2__generate_coverage_report_OUTPUT_DIR}
     )
 
 endfunction( catch2__generate_coverage_report )
+
+if( CATCH2__TEST )
+    add_subdirectory( ${Catch2__DIR}/test )
+endif( CATCH2__TEST )

@@ -1,0 +1,48 @@
+{
+"version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Generate",
+            "command": "cmake",
+            "args": [
+                "-B", "build",
+                "-DCMAKE_BUILD_TYPE=Debug",
+                "-DCATCH2__TEST=ON",
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "Build",
+            "command": "cmake",
+            "args": [
+                "--build", "build",
+            ],
+            "dependsOn": [
+                "Generate"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "Clean",
+            "command": "rm",
+            "args": [
+                "-rf", "build"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+    ]
+}
