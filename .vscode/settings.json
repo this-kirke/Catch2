@@ -22,5 +22,10 @@
         "string_view": "c",
         "chrono": "cpp",
         "memory_resource": "cpp"
+    },
+    "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true,
+    "[markdown]": {
+        "files.trimTrailingWhitespace": false
     }
 }
