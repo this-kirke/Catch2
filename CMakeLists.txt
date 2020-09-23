@@ -22,7 +22,7 @@ endif( NOT TARGET Catch2 )
 #*      SOURCES - The sources used to build the test target
 #*      LINK_LIBRARIES - Optional list of library targets to be linked with the test target
 #*      DEPENDENCIES - Optional list of dependencies to be built before the test target
-#*  Usage:  
+#*  Usage:
 #*      catch2__add_test(
 #*          NAME <name>
 #*          SOURCES <source_1 source_2 ...>
@@ -60,7 +60,7 @@ function( catch2__add_test )
         Catch2
         "${catch2__add_test_LINK_LIBRARIES}"
     )
-    
+
     if( NOT ${catch2__add_test_DEPENDENCIES} STREQUAL "" )
         add_dependencies(
             ${catch2__add_test_NAME}
@@ -83,14 +83,14 @@ endfunction( catch2__add_test )
 #*  Description:
 #*      Builds a single test executable containing all test groups previously
 #*      added through function add_test_group above.
-#*  Usage:  
+#*  Usage:
 #*      catch2__build_test_executable()
 #*************************************************************************#
 
 function( catch2__build_test_executable )
 
     if( _catch2__TESTS )
-    
+
         add_executable(
             test__all
             ${Catch2__DIR}/src/test_runner.cpp
@@ -103,66 +103,16 @@ function( catch2__build_test_executable )
             "${_catch2__TESTS}"
         )
 
+        set_target_properties(
+            test__all
+            PROPERTIES
+            COMPILE_FLAGS "--coverage"
+            LINK_FLAGS "--coverage"
+        )
+
     endif( _catch2__TESTS )
 
 endfunction( catch2__build_test_executable )
-
-
-#*************************************************************************#
-#*  Public Function:
-#*      catch2__generate_coverage_report
-#*  Description:
-#*      Builds a single test executable containing all test groups previously
-#*      added through function add_test_group above.
-#*  Parameters:
-#*      OUTPUT_DIR - Optional: the directory in which html coverage report
-#*      will be generated.  
-#*  Usage:  
-#*      catch2__generate_coverage_report()
-#*************************************************************************#
-
-function( catch2__generate_coverage_report )
-    find_program( LCOV_EXECUTABLE lcov REQUIRED )
-    find_program( GENHTML_EXECUTABLE genhtml REQUIRED )
-
-    set( option_args )
-    set( one_value_args OUTPUT_DIR )
-    set( multi_value_args )
-
-    cmake_parse_arguments( catch2__generate_coverage_report "${option_args}" "${one_value_args}" "${multi_value_args}" ${ARGN} )
-
-    if( NOT catch2__generate_coverage_report_OUTPUT_DIR )
-        set( catch2__generate_coverage_report_OUTPUT_DIR ${CMAKE_BINARY_DIR}/coverage )
-    endif( NOT catch2__generate_coverage_report_OUTPUT_DIR )
-
-    #   Uncomment below to inspect parameters passed to function
-    #[[
-    message( "Parameters passed to function catch2__generate_coverage_report:")
-    message( "OUTPUT_DIR:\t${catch2__generate_coverage_report_OUTPUT_DIR}" )
-    ]]
-
-    file( MAKE_DIRECTORY ${catch2__generate_coverage_report_OUTPUT_DIR} )
-
-    set_target_properties(
-        test__all
-        PROPERTIES
-        COMPILE_FLAGS "--coverage"
-        LINK_FLAGS "--coverage"
-    )
-
-    add_custom_command(
-        TARGET test__all
-        POST_BUILD
-        COMMAND test__all WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMAND lcov --quiet --directory ${CMAKE_BINARY_DIR} --capture --output-file ${catch2__generate_coverage_report_OUTPUT_DIR}/coverage.info
-        
-        # Workaround - explicitly remove files from coverage report that commonly show up, but are not part of the project being built.
-        COMMAND lcov --quiet --remove ${catch2__generate_coverage_report_OUTPUT_DIR}/coverage.info -o ${catch2__generate_coverage_report_OUTPUT_DIR}/coverage.info */catch.hpp *${CMAKE_C_COMPILER_VERSION}* *${CMAKE_CXX_COMPILER_VERSION}
-        
-        COMMAND genhtml --quiet ${catch2__generate_coverage_report_OUTPUT_DIR}/coverage.info -o ${catch2__generate_coverage_report_OUTPUT_DIR}
-    )
-
-endfunction( catch2__generate_coverage_report )
 
 if( CATCH2__TEST )
     add_subdirectory( ${Catch2__DIR}/test )

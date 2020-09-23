@@ -1,6 +1,6 @@
 set( Catch2__TEST_DIR "${CMAKE_CURRENT_LIST_DIR}" )
 
-add_library( 
+add_library(
     libtest
     ${Catch2__TEST_DIR}/src/test.c
 )
@@ -22,6 +22,7 @@ set_target_properties(
     PROPERTIES
     OUTPUT_NAME test
     COMPILE_FLAGS "--coverage"
+    LINK_FLAGS= "--coverage"
 )
 
 catch2__add_test(
@@ -31,4 +32,3 @@ catch2__add_test(
 )
 
 catch2__build_test_executable()
-catch2__generate_coverage_report()

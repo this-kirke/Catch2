@@ -1,0 +1,32 @@
+
+language: c
+
+cache:
+  directories:
+    - ${TRAVIS_BUILD_DIR}/deps
+
+jobs:
+  include:
+    # GCC 10
+    - name: GCC-10
+      os: linux
+      dist: bionic
+      env: CC=gcc-10 CXX=g++-10
+      addons: &gcc10
+        apt:
+          sources:
+          - sourceline: ppa:ubuntu-toolchain-r/test
+          packages:
+          - g++-10
+      before_install:
+        - pip install --user cpp-coveralls
+        - export PATH="$HOME/.local/bin:$PATH"
+      before_script:
+        - CMAKE_GEN_FLAGS+=("-Wdev -Werror=dev --warn-uninitialized -DCATCH2__TEST=ON" )
+        - mkdir build && cd build
+      script:
+        - cmake .. ${CMAKE_GEN_FLAGS[@]:?}
+        - cmake --build .
+        - ./test/test__all -s
+      after_success:
+        - coveralls --gcov gcov-10 --root .. --build-root . --exclude /usr/include --exclude Catch2 --include test
